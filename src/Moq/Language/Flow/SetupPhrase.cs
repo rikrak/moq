@@ -54,7 +54,7 @@ namespace Moq.Language.Flow
 
         protected SetupPhrase(MethodCall setup)
         {
-            Debug.Assert(setup != null);
+            Guard.NotNull(setup);
 
             this.setup = setup;
         }

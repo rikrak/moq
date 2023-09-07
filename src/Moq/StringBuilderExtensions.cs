@@ -98,7 +98,7 @@ namespace Moq
 
         public static StringBuilder AppendNameOf(this StringBuilder stringBuilder, Type type)
         {
-            Debug.Assert(type != null);
+            Guard.NotNull(type);
 
             return stringBuilder.AppendFormattedName(type);
         }

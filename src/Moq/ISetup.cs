@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -49,7 +50,7 @@ namespace Moq
         // /// <exception cref="InvalidOperationException">The setup has more than one inner mock.</exception>
         // [Obsolete("Use 'InnerMocks' instead.")]
         // [EditorBrowsable(EditorBrowsableState.Never)]
-        Mock InnerMock { get; }
+        Mock? InnerMock { get; }
 
         // /// <summary>
         // ///   Gets the inner mocks of this setup (if present and known).
@@ -126,7 +127,7 @@ namespace Moq
         ///     e.g. by <see cref="Mock{T}.SetupAllProperties"/> or by <see cref="DefaultValue.Mock"/>.
         ///   </para>
         /// </summary>
-        Expression OriginalExpression { get; }
+        Expression? OriginalExpression { get; }
 
         /// <summary>
         ///   Verifies this setup and optionally all verifiable setups of its inner mock (if present and known).

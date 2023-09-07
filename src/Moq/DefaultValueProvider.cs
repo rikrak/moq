@@ -67,9 +67,9 @@ namespace Moq
         /// </remarks>
         protected internal virtual object GetDefaultParameterValue(ParameterInfo parameter, Mock mock)
         {
-            Debug.Assert(parameter != null);
+            Guard.NotNull(mock);
+            Guard.NotNull(parameter);
             Debug.Assert(parameter.ParameterType != typeof(void));
-            Debug.Assert(mock != null);
 
             return this.GetDefaultValue(parameter.ParameterType, mock);
         }
@@ -90,9 +90,9 @@ namespace Moq
         /// </remarks>
         protected internal virtual object GetDefaultReturnValue(MethodInfo method, Mock mock)
         {
-            Debug.Assert(method != null);
+            Guard.NotNull(mock);
+            Guard.NotNull(method);
             Debug.Assert(method.ReturnType != typeof(void));
-            Debug.Assert(mock != null);
 
             return this.GetDefaultValue(method.ReturnType, mock);
         }

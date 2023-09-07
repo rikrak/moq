@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -98,13 +99,13 @@ namespace Moq
             string failMessage;
     */
     {
-        VerifyInvocationCount verifyInvocationCount;
-        Behavior callback;
-        Behavior raiseEvent;
-        Behavior returnOrThrow;
-        Behavior afterReturnCallback;
+        VerifyInvocationCount? verifyInvocationCount;
+        Behavior? callback;
+        Behavior? raiseEvent;
+        Behavior? returnOrThrow;
+        Behavior? afterReturnCallback;
         Condition condition;
-        string failMessage;
+        string? failMessage;
 
 
         /* Unmerged change from project 'Moq(netstandard2.0)'
@@ -127,9 +128,9 @@ namespace Moq
         After:
                 string declarationSite;
         */
-        string declarationSite;
+        string? declarationSite;
 
-        public MethodCall(Expression originalExpression, Mock mock, Condition condition, MethodExpectation expectation)
+        public MethodCall(Expression? originalExpression, Mock mock, Condition condition, MethodExpectation expectation)
             : base(originalExpression, mock, expectation)
         {
             this.condition = condition;
@@ -140,7 +141,7 @@ namespace Moq
             }
         }
 
-        public string FailMessage
+        public string? FailMessage
         {
             get => this.failMessage;
         }
@@ -180,7 +181,7 @@ namespace Moq
             }
         }
 
-        static string GetUserCodeCallSite()
+        static string? GetUserCodeCallSite()
         {
             try
             {
@@ -189,18 +190,25 @@ namespace Moq
                 var frame = new StackTrace(true)
                     .GetFrames()
                     .SkipWhile(f => f.GetMethod() != thisMethod)
-                    .SkipWhile(f => f.GetMethod().DeclaringType == null || f.GetMethod().DeclaringType.Assembly == mockAssembly)
+                    .SkipWhile(f => f.GetMethod()?.DeclaringType == null || f.GetMethod()?.DeclaringType?.Assembly == mockAssembly)
                     .FirstOrDefault();
                 var member = frame?.GetMethod();
                 if (member != null)
                 {
                     var declaredAt = new StringBuilder();
-                    declaredAt.AppendNameOf(member.DeclaringType).Append('.').AppendNameOf(member, false);
-                    var fileName = Path.GetFileName(frame.GetFileName());
+                    var declaringType = member.DeclaringType;
+                    if (declaringType != null)
+                    {
+                        declaredAt.AppendNameOf(declaringType).Append('.');
+                    }
+                    declaredAt.AppendNameOf(member, false);
+                    var fileName = frame != null 
+                        ? Path.GetFileName(frame.GetFileName())
+                        : null;
                     if (fileName != null)
                     {
                         declaredAt.Append(" in ").Append(fileName);
-                        var lineNumber = frame.GetFileLineNumber();
+                        var lineNumber = frame?.GetFileLineNumber() ?? 0;
                         if (lineNumber != 0)
                         {
                             declaredAt.Append(": line ").Append(lineNumber);
@@ -260,12 +268,9 @@ namespace Moq
 
         public void SetCallbackBehavior(Delegate callback)
         {
-            if (callback == null)
-            {
-                throw new ArgumentNullException(nameof(callback));
-            }
+            Guard.NotNull(callback);
 
-            ref Behavior behavior = ref (this.returnOrThrow == null) ? ref this.callback
+            ref Behavior? behavior = ref (this.returnOrThrow == null) ? ref this.callback
                                                                      : ref this.afterReturnCallback;
 
             if (callback is Action callbackWithoutArguments)
@@ -308,7 +313,7 @@ namespace Moq
             }
         }
 
-        public void SetFailMessage(string failMessage)
+        public void SetFailMessage(string? failMessage)
         {
             this.failMessage = failMessage;
         }
@@ -322,7 +327,7 @@ namespace Moq
 
             // TODO: validate that expression is for event subscription or unsubscription
 
-            this.raiseEvent = new RaiseEvent(this.Mock, expression, func, null);
+            this.raiseEvent = new RaiseEvent(this.Mock, expression, func);
         }
 
         public void SetRaiseEventBehavior<TMock>(Action<TMock> eventExpression, params object[] args)
@@ -334,7 +339,7 @@ namespace Moq
 
             // TODO: validate that expression is for event subscription or unsubscription
 
-            this.raiseEvent = new RaiseEvent(this.Mock, expression, null, args);
+            this.raiseEvent = new RaiseEvent(this.Mock, expression, args);
         }
 
         public void SetReturnValueBehavior(object value)
@@ -345,7 +350,7 @@ namespace Moq
             this.returnOrThrow = new ReturnValue(value);
         }
 
-        public void SetReturnComputedValueBehavior(Delegate valueFactory)
+        public void SetReturnComputedValueBehavior(Delegate? valueFactory)
         {
             Debug.Assert(this.Method.ReturnType != typeof(void));
             Debug.Assert(this.returnOrThrow == null);
@@ -423,7 +428,7 @@ namespace Moq
             this.returnOrThrow = new ThrowException(exception);
         }
 
-        public void SetThrowComputedExceptionBehavior(Delegate exceptionFactory)
+        public void SetThrowComputedExceptionBehavior(Delegate? exceptionFactory)
         {
             Debug.Assert(this.returnOrThrow == null);
 
@@ -435,7 +440,7 @@ namespace Moq
                 // and instead of in `Throws(TException)`, we ended up in `Throws(Delegate)` or `Throws(Func)`,
                 // which likely isn't what the user intended.
                 // So here we do what we would've done in `Throws(TException)`:
-                this.returnOrThrow = new ThrowException(default);
+                this.returnOrThrow = new ThrowException(new Exception());
             }
             else
             {

@@ -56,6 +56,7 @@ namespace Moq
         public AsInterface(Mock owner)
             : base(true)
         {
+            Guard.NotNull(owner);
             this.owner = owner;
         }
 

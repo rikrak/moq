@@ -1,12 +1,15 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
-
+using System.Runtime.CompilerServices;
+using Moq.Polyfill;
 using Moq.Properties;
 
 using TypeNameFormatter;
@@ -28,12 +31,12 @@ namespace Moq
             }
         }
 
-        public static void ImplementsInterface(Type interfaceType, Type type, string paramName = null)
+        public static void ImplementsInterface(Type interfaceType, Type type, string? paramName = null)
         {
-            Debug.Assert(interfaceType != null);
+            NotNull(interfaceType);
             Debug.Assert(interfaceType.IsInterface);
 
-            Debug.Assert(type != null);
+            NotNull(type);
 
             if (interfaceType.IsAssignableFrom(type) == false)
             {
@@ -49,7 +52,7 @@ namespace Moq
 
         public static void ImplementsTypeMatcherProtocol(Type type)
         {
-            Debug.Assert(type != null);
+            NotNull(type);
 
             Guard.ImplementsInterface(typeof(ITypeMatcher), type);
             Guard.CanCreateInstance(type);
@@ -57,7 +60,7 @@ namespace Moq
 
         public static void IsAssignmentToPropertyOrIndexer(LambdaExpression expression, string paramName)
         {
-            Debug.Assert(expression != null);
+            NotNull(expression);
 
             switch (expression.Body.NodeType)
             {
@@ -92,7 +95,7 @@ namespace Moq
                         string.Format(
                             CultureInfo.CurrentCulture,
                             method.IsExtensionMethod() ? Resources.UnsupportedExtensionMethod : Resources.UnsupportedStaticMember,
-                            $"{method.DeclaringType.GetFormattedName()}.{method.Name}")));
+                            $"{method.DeclaringType?.GetFormattedName()}.{method.Name}")));
             }
             else if (!method.CanOverride())
             {
@@ -104,7 +107,7 @@ namespace Moq
                         string.Format(
                             CultureInfo.CurrentCulture,
                             Resources.UnsupportedNonOverridableMember,
-                            $"{method.DeclaringType.GetFormattedName()}.{method.Name}")));
+                            $"{method.DeclaringType?.GetFormattedName()}.{method.Name}")));
             }
         }
 
@@ -115,7 +118,7 @@ namespace Moq
                 throw new ArgumentException(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources.MethodNotVisibleToProxyFactory,
-                    method.DeclaringType.Name,
+                    method.DeclaringType?.Name ?? string.Empty,
                     method.Name,
                     messageIfNotVisible));
             }
@@ -123,7 +126,7 @@ namespace Moq
 
         public static void IsEventAdd(LambdaExpression expression, string paramName)
         {
-            Debug.Assert(expression != null);
+            NotNull(expression);
 
             switch (expression.Body.NodeType)
             {
@@ -143,7 +146,7 @@ namespace Moq
 
         public static void IsEventRemove(LambdaExpression expression, string paramName)
         {
-            Debug.Assert(expression != null);
+            NotNull(expression);
 
             switch (expression.Body.NodeType)
             {
@@ -165,25 +168,29 @@ namespace Moq
         /// Ensures the given <paramref name="value"/> is not null.
         /// Throws <see cref="ArgumentNullException"/> otherwise.
         /// </summary>
-        public static void NotNull(object value, string paramName)
+        [return: NotNullIfNotNull("value")]
+        public static T NotNull<T>([NotNull][ValidatedNotNull]T? value, [CallerArgumentExpression("value")] string? paramName = null)
         {
-            if (value == null)
+            if (IsNull(value))
             {
-                throw new ArgumentNullException(paramName);
+                ThrowOnNull(paramName);
             }
+            return value;
         }
+
+        static bool IsNull<T>([NotNullWhen(false)] T? value) => value is null;
+
+        [DoesNotReturn]
+        static void ThrowOnNull(string? paramName) => throw new ArgumentNullException(paramName ?? "<unknown>");
 
         /// <summary>
         /// Ensures the given string <paramref name="value"/> is not null or empty.
         /// Throws <see cref="ArgumentNullException"/> in the first case, or 
         /// <see cref="ArgumentException"/> in the latter.
         /// </summary>
-        public static void NotNullOrEmpty(string value, string paramName)
+        public static void NotNullOrEmpty([ValidatedNotNull] string? value, [CallerArgumentExpression("value")] string? paramName = null)
         {
-            if (value == null)
-            {
-                throw new ArgumentNullException(paramName);
-            }
+            NotNull(value, paramName);
 
             if (value.Length == 0)
             {
@@ -226,7 +233,8 @@ namespace Moq
                 throw new ArgumentException(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources.PropertyGetNotFound,
-                    property.DeclaringType.Name, property.Name));
+                    property.DeclaringType?.Name ?? string.Empty,
+                    property.Name));
             }
         }
 
@@ -237,7 +245,8 @@ namespace Moq
                 throw new ArgumentException(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources.PropertySetNotFound,
-                    property.DeclaringType.Name, property.Name));
+                    property.DeclaringType?.Name ?? string.Empty,
+                    property.Name));
             }
         }
     }

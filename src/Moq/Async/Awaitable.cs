@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -35,7 +36,7 @@ namespace Moq.Async
         ///   this method will return <c>42</c>.
         /// </remarks>
         /// <param name="obj">The (possibly awaitable) object to be "unwrapped".</param>
-        public static object TryGetResultRecursive(object obj)
+        public static object? TryGetResultRecursive(object? obj)
         {
             if (obj != null
                 && AwaitableFactory.TryGet(obj.GetType()) is { } awaitableFactory

@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -52,9 +53,9 @@ namespace Moq.Behaviors
     {
         readonly Func<IInvocation, object> valueFactory;
 
-        public ReturnComputedValue(Func<IInvocation, object> valueFactory)
+        public ReturnComputedValue(Func<IInvocation, object?> valueFactory)
         {
-            Debug.Assert(valueFactory != null);
+            Guard.NotNull(valueFactory);
 
             this.valueFactory = valueFactory;
         }

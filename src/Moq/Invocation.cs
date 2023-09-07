@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -149,7 +150,7 @@ namespace Moq
 
         public Type ProxyType => this.proxyType;
 
-        public object ReturnValue
+        public object? ReturnValue
         {
             get => this.result is ExceptionResult ? null : this.result;
             set

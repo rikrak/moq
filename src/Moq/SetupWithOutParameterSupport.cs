@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -55,12 +56,12 @@ namespace Moq
             readonly List<KeyValuePair<int, object>> outValues;
     */
     {
-        readonly List<KeyValuePair<int, object>> outValues;
+        readonly List<KeyValuePair<int, object>>? outValues;
 
-        protected SetupWithOutParameterSupport(Expression originalExpression, Mock mock, MethodExpectation expectation)
+        protected SetupWithOutParameterSupport(Expression? originalExpression, Mock mock, MethodExpectation expectation)
             : base(originalExpression, mock, expectation)
         {
-            Debug.Assert(expectation != null);
+            Guard.NotNull(expectation);
 
             this.outValues = GetOutValues(expectation.Arguments, expectation.Method.GetParameters());
         }
@@ -97,9 +98,9 @@ namespace Moq
             }
         }
 
-        static List<KeyValuePair<int, object>> GetOutValues(IReadOnlyList<Expression> arguments, ParameterInfo[] parameters)
+        static List<KeyValuePair<int, object>>? GetOutValues(IReadOnlyList<Expression> arguments, ParameterInfo[] parameters)
         {
-            List<KeyValuePair<int, object>> outValues = null;
+            List<KeyValuePair<int, object>>? outValues = null;
             for (int i = 0, n = parameters.Length; i < n; ++i)
             {
                 var parameter = parameters[i];

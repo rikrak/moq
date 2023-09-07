@@ -1,7 +1,9 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 
@@ -71,17 +73,23 @@ namespace Moq.Behaviors
     {
         Mock mock;
         LambdaExpression expression;
-        Delegate eventArgsFunc;
-        object[] eventArgsParams;
+        Delegate? eventArgsFunc;
+        object[]? eventArgsParams;
 
-        public RaiseEvent(Mock mock, LambdaExpression expression, Delegate eventArgsFunc, object[] eventArgsParams)
+        public RaiseEvent(Mock mock, LambdaExpression expression, object[] eventArgsParams) : this(mock, expression, null, eventArgsParams)
         {
-            Debug.Assert(mock != null);
-            Debug.Assert(expression != null);
+        }
+
+        public RaiseEvent(Mock mock, LambdaExpression expression, Delegate eventArgsFunc) : this(mock, expression, eventArgsFunc, null)
+        {
+        }
+
+        RaiseEvent(Mock mock, LambdaExpression expression, Delegate? eventArgsFunc, object[]? eventArgsParams)
+        {
             Debug.Assert(eventArgsFunc != null ^ eventArgsParams != null);
 
-            this.mock = mock;
-            this.expression = expression;
+            this.mock = Guard.NotNull(mock);
+            this.expression = Guard.NotNull(expression);
             this.eventArgsFunc = eventArgsFunc;
             this.eventArgsParams = eventArgsParams;
         }
@@ -96,15 +104,28 @@ namespace Moq.Behaviors
             }
             else
             {
-                var argsFuncType = this.eventArgsFunc.GetType();
+                var argsFuncType = this.eventArgsFunc!.GetType();
+                var argsList = new List<object>()
+                {
+                    this.mock.Object
+                };
                 if (argsFuncType.IsGenericType && argsFuncType.GetGenericArguments().Length == 1)
                 {
-                    args = new object[] { this.mock.Object, this.eventArgsFunc.InvokePreserveStack() };
+                    var eventArgs = this.eventArgsFunc.InvokePreserveStack();
+                    if (eventArgs != null)
+                    {
+                        argsList.Add(eventArgs);
+                    }
                 }
                 else
                 {
-                    args = new object[] { this.mock.Object, this.eventArgsFunc.InvokePreserveStack(invocation.Arguments) };
+                    var eventArgs = this.eventArgsFunc.InvokePreserveStack(invocation.Arguments);
+                    if (eventArgs != null)
+                    {
+                        argsList.Add(eventArgs);
+                    }
                 }
+                args = argsList.ToArray();
             }
 
             Mock.RaiseEvent(this.mock, this.expression, this.expression.Split(), args);
