@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -40,7 +41,7 @@ namespace Moq.Async
 
         public abstract TAwaitable CreateCompleted();
 
-        object IAwaitableFactory.CreateCompleted(object result)
+        object IAwaitableFactory.CreateCompleted(object? result)
         {
             Debug.Assert(result == null);
 
@@ -51,7 +52,7 @@ namespace Moq.Async
 
         object IAwaitableFactory.CreateFaulted(Exception exception)
         {
-            Debug.Assert(exception != null);
+            Guard.NotNull(exception);
 
             return this.CreateFaulted(exception);
         }
@@ -60,7 +61,7 @@ namespace Moq.Async
 
         object IAwaitableFactory.CreateFaulted(IEnumerable<Exception> exceptions)
         {
-            Debug.Assert(exceptions != null);
+            Guard.NotNull(exceptions);
             Debug.Assert(exceptions.Any());
 
             return this.CreateFaulted(exceptions);
@@ -71,7 +72,7 @@ namespace Moq.Async
             return new AwaitExpression(awaitableExpression, this);
         }
 
-        bool IAwaitableFactory.TryGetResult(object awaitable, out object result)
+        bool IAwaitableFactory.TryGetResult(object awaitable, out object? result)
         {
             Debug.Assert(awaitable is TAwaitable);
 

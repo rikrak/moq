@@ -94,10 +94,10 @@ namespace Moq
     {
         object[] arguments;
         MethodInfo method;
-        MethodInfo methodImplementation;
+        MethodInfo? methodImplementation;
         readonly Type proxyType;
-        object result;
-        Setup matchingSetup;
+        object? result;
+        Setup? matchingSetup;
         bool verified;
 
         /// <summary>
@@ -108,9 +108,9 @@ namespace Moq
         /// <param name="arguments">The arguments with which the specified <paramref name="method"/> is being invoked.</param>
         protected Invocation(Type proxyType, MethodInfo method, params object[] arguments)
         {
-            Debug.Assert(proxyType != null);
-            Debug.Assert(arguments != null);
-            Debug.Assert(method != null);
+            Guard.NotNull(proxyType);
+            Guard.NotNull(arguments);
+            Guard.NotNull(method);
 
             this.arguments = arguments;
             this.method = method;
@@ -146,7 +146,7 @@ namespace Moq
 
         IReadOnlyList<object> IInvocation.Arguments => this.arguments;
 
-        public ISetup MatchingSetup => this.matchingSetup;
+        public ISetup? MatchingSetup => this.matchingSetup;
 
         public Type ProxyType => this.proxyType;
 
@@ -160,7 +160,7 @@ namespace Moq
             }
         }
 
-        public Exception Exception
+        public Exception? Exception
         {
             get => this.result is ExceptionResult r ? r.Exception : null;
             set
@@ -213,8 +213,12 @@ namespace Moq
             var method = this.Method;
 
             var builder = new StringBuilder();
-            builder.AppendNameOf(method.DeclaringType);
-            builder.Append('.');
+            var declaringType = method.DeclaringType;
+            if (declaringType != null)
+            {
+                builder.AppendNameOf(declaringType);
+                builder.Append('.');
+            }
 
             if (method.IsGetAccessor())
             {
@@ -275,12 +279,12 @@ namespace Moq
         /// </summary>
         readonly struct ExceptionResult
         {
-            public ExceptionResult(Exception exception)
+            public ExceptionResult(Exception? exception)
             {
                 Exception = exception;
             }
 
-            public Exception Exception { get; }
+            public Exception? Exception { get; }
         }
     }
 }

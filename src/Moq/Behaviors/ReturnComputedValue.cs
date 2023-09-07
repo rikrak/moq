@@ -51,7 +51,7 @@ namespace Moq.Behaviors
             readonly Func<IInvocation, object> valueFactory;
     */
     {
-        readonly Func<IInvocation, object> valueFactory;
+        readonly Func<IInvocation, object?> valueFactory;
 
         public ReturnComputedValue(Func<IInvocation, object?> valueFactory)
         {
