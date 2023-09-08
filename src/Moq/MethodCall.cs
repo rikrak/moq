@@ -440,7 +440,7 @@ namespace Moq
                 // and instead of in `Throws(TException)`, we ended up in `Throws(Delegate)` or `Throws(Func)`,
                 // which likely isn't what the user intended.
                 // So here we do what we would've done in `Throws(TException)`:
-                this.returnOrThrow = new ThrowException(new Exception());
+                this.returnOrThrow = new ThrowException(default); // TODO Nullable - original code passes null (via "default" keyword), but I'm not sure this is the original intention
             }
             else
             {
@@ -453,11 +453,19 @@ namespace Moq
                 if (exceptionFactory.CompareParameterTypesTo(Type.EmptyTypes))
                 {
                     // we need this for the user to be able to use parameterless methods
-                    this.returnOrThrow = new ThrowComputedException(invocation => exceptionFactory.InvokePreserveStack() as Exception);
+                    this.returnOrThrow = new ThrowComputedException(invocation =>
+                    {
+                        var exception = exceptionFactory.InvokePreserveStack() as Exception;
+                        return exception ?? throw new InvalidOperationException("Exception Factory did not create an exception");
+                    });
                 }
                 else
                 {
-                    this.returnOrThrow = new ThrowComputedException(invocation => exceptionFactory.InvokePreserveStack(invocation.Arguments) as Exception);
+                    this.returnOrThrow = new ThrowComputedException(invocation =>
+                    {
+                        var exception = exceptionFactory.InvokePreserveStack(invocation.Arguments) as Exception;
+                        return exception ?? throw new InvalidOperationException("Exception Factory did not create an exception");
+                    });
                 }
             }
         }

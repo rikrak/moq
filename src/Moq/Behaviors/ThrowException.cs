@@ -53,7 +53,7 @@ namespace Moq.Behaviors
     {
         readonly Exception exception;
 
-        public ThrowException(Exception exception)
+        public ThrowException(Exception? exception)
         {
             Guard.NotNull(exception);
 

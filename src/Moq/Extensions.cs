@@ -175,11 +175,11 @@ namespace Moq
             }
         }
 
-        public static object? InvokePreserveStack(this Delegate del, IReadOnlyList<object>? args = null)
+        public static object? InvokePreserveStack(this Delegate del, IReadOnlyList<object?>? args = null)
         {
             try
             {
-                return del.DynamicInvoke((args as object[]) ?? args?.ToArray());
+                return del.DynamicInvoke((args as object?[]) ?? args?.ToArray());
             }
             catch (TargetInvocationException ex)
             {

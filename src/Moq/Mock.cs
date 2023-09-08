@@ -555,7 +555,7 @@ namespace Moq
 
         #region Setup
 
-        internal static MethodCall Setup(Mock mock, LambdaExpression expression, Condition condition)
+        internal static MethodCall Setup(Mock mock, LambdaExpression expression, Condition? condition)
         {
             Guard.NotNull(expression, nameof(expression));
 

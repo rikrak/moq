@@ -32,7 +32,7 @@ namespace Moq.Async
     {
         Type ResultType { get; }
 
-        object CreateCompleted(object result = null);
+        object CreateCompleted(object? result = null);
 
         object CreateFaulted(Exception exception);
 
@@ -40,6 +40,6 @@ namespace Moq.Async
 
         Expression CreateResultExpression(Expression awaitableExpression);
 
-        bool TryGetResult(object awaitable, out object result);
+        bool TryGetResult(object awaitable, out object? result);
     }
 }

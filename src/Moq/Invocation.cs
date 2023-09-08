@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
@@ -142,9 +143,9 @@ namespace Moq
         /// Arguments may be modified. Derived classes must ensure that by-reference parameters are written back
         /// when the invocation is ended by a call to any of the three <c>Returns</c> methods.
         /// </remarks>
-        public object[] Arguments => this.arguments;
+        public object?[] Arguments => this.arguments;
 
-        IReadOnlyList<object> IInvocation.Arguments => this.arguments;
+        IReadOnlyList<object?> IInvocation.Arguments => this.arguments;
 
         public ISetup? MatchingSetup => this.matchingSetup;
 
@@ -174,7 +175,9 @@ namespace Moq
         {
             if (this.result is ExceptionResult r)
             {
-                this.result = awaitableFactory.CreateFaulted(r.Exception);
+                var exception = r.Exception;
+                Guard.NotNull(exception);
+                this.result = awaitableFactory.CreateFaulted(exception);
             }
             else if (!this.method.ReturnType.IsAssignableFrom(this.result?.GetType()))
             {
@@ -228,7 +231,7 @@ namespace Moq
             {
                 builder.Append(method.Name, 4, method.Name.Length - 4);
                 builder.Append(" = ");
-                builder.AppendValueOf(this.Arguments[0]);
+                builder.AppendValueOf(this.Arguments[0] ?? "");
             }
             else
             {
@@ -242,7 +245,7 @@ namespace Moq
                     {
                         builder.Append(", ");
                     }
-                    builder.AppendValueOf(this.Arguments[i]);
+                    builder.AppendValueOf(this.Arguments[i] ?? "");
                 }
 
                 builder.Append(')');

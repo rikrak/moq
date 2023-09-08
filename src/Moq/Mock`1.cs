@@ -298,7 +298,7 @@ namespace Moq
         ///   The mock will try to find the best match constructor given the constructor arguments,
         ///   and invoke that to initialize the instance. This applies only to classes, not interfaces.
         /// </remarks>
-        public Mock(MockBehavior behavior, params object[] args)
+        public Mock(MockBehavior behavior, params object[]? args)
         {
             Guard.IsMockable(typeof(T));
 

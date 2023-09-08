@@ -56,7 +56,7 @@ namespace Moq
             readonly List<KeyValuePair<int, object>> outValues;
     */
     {
-        readonly List<KeyValuePair<int, object>>? outValues;
+        readonly List<KeyValuePair<int, object?>>? outValues;
 
         protected SetupWithOutParameterSupport(Expression? originalExpression, Mock mock, MethodExpectation expectation)
             : base(originalExpression, mock, expectation)
@@ -98,9 +98,9 @@ namespace Moq
             }
         }
 
-        static List<KeyValuePair<int, object>>? GetOutValues(IReadOnlyList<Expression> arguments, ParameterInfo[] parameters)
+        static List<KeyValuePair<int, object?>>? GetOutValues(IReadOnlyList<Expression> arguments, ParameterInfo[] parameters)
         {
-            List<KeyValuePair<int, object>>? outValues = null;
+            List<KeyValuePair<int, object?>>? outValues = null;
             for (int i = 0, n = parameters.Length; i < n; ++i)
             {
                 var parameter = parameters[i];
@@ -139,10 +139,10 @@ namespace Moq
 
                         if (outValues == null)
                         {
-                            outValues = new List<KeyValuePair<int, object>>();
+                            outValues = new List<KeyValuePair<int, object?>>();
                         }
 
-                        outValues.Add(new KeyValuePair<int, object>(i, constant.Value));
+                        outValues.Add(new KeyValuePair<int, object?>(i, constant.Value));
                     }
                 }
             }

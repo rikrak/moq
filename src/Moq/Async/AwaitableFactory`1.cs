@@ -45,7 +45,7 @@ namespace Moq.Async
         {
             Debug.Assert(result == null);
 
-            return this.CreateCompleted();
+            return this.CreateCompleted()!;
         }
 
         public abstract TAwaitable CreateFaulted(Exception exception);
@@ -54,7 +54,7 @@ namespace Moq.Async
         {
             Guard.NotNull(exception);
 
-            return this.CreateFaulted(exception);
+            return this.CreateFaulted(exception)!;
         }
 
         public abstract TAwaitable CreateFaulted(IEnumerable<Exception> exceptions);
@@ -64,7 +64,7 @@ namespace Moq.Async
             Guard.NotNull(exceptions);
             Debug.Assert(exceptions.Any());
 
-            return this.CreateFaulted(exceptions);
+            return this.CreateFaulted(exceptions)!;
         }
 
         Expression IAwaitableFactory.CreateResultExpression(Expression awaitableExpression)
