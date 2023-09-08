@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -38,7 +39,7 @@ namespace Moq
         static ExpressionCompiler instance = DefaultExpressionCompiler.Instance;
 
         /// <summary>
-        ///   The default <see cref="ExpressionCompiler"/> instance, which simply delegates to the framework's <see cref="LambdaExpression.Compile"/>.
+        ///   The default <see cref="ExpressionCompiler"/> instance, which simply delegates to the framework's <see cref="LambdaExpression.Compile()"/>.
         /// </summary>
         public static ExpressionCompiler Default => DefaultExpressionCompiler.Instance;
 

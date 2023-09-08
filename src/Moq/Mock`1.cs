@@ -183,7 +183,7 @@ namespace Moq
         T instance;
         List<Type> additionalInterfaces;
         Dictionary<Type, object> configuredDefaultValues;
-        object[] constructorArguments;
+        object?[] constructorArguments;
         DefaultValueProvider defaultValueProvider;
         EventHandlerCollection eventHandlers;
         InvocationCollection invocations;
@@ -298,13 +298,13 @@ namespace Moq
         ///   The mock will try to find the best match constructor given the constructor arguments,
         ///   and invoke that to initialize the instance. This applies only to classes, not interfaces.
         /// </remarks>
-        public Mock(MockBehavior behavior, params object[]? args)
+        public Mock(MockBehavior behavior, params object?[]? args)
         {
             Guard.IsMockable(typeof(T));
 
             if (args == null)
             {
-                args = new object[] { null };
+                args = new object?[] { null };
             }
 
             this.additionalInterfaces = new List<Type>();
@@ -423,7 +423,7 @@ namespace Moq
             }
         }
 
-        internal override object[] ConstructorArguments => this.constructorArguments;
+        internal override object?[] ConstructorArguments => this.constructorArguments;
 
         internal override Dictionary<Type, object> ConfiguredDefaultValues => this.configuredDefaultValues;
 
@@ -465,7 +465,7 @@ namespace Moq
         /// <summary>
         ///   Returns the name of the mock.
         /// </summary>
-        public override string ToString()
+        public override string? ToString()
         {
             return this.Name;
 
@@ -1466,7 +1466,7 @@ namespace Moq
         /// <param name="removeExpression">Expression to verify.</param>
         /// <param name="failMessage">Message to show if verification fails.</param>
         /// <exception cref="MockException">The invocation was not performed on the mock.</exception>
-        public void VerifyRemove(Action<T> removeExpression, string failMessage)
+        public void VerifyRemove(Action<T> removeExpression, string? failMessage)
         {
             Guard.NotNull(removeExpression, nameof(removeExpression));
 
@@ -1483,7 +1483,7 @@ namespace Moq
         /// <exception cref="MockException">
         ///   The invocation was not called the number of times specified by <paramref name="times"/>.
         /// </exception>
-        public void VerifyRemove(Action<T> removeExpression, Times times, string failMessage)
+        public void VerifyRemove(Action<T> removeExpression, Times times, string? failMessage)
         {
             Guard.NotNull(removeExpression, nameof(removeExpression));
 
@@ -1500,7 +1500,7 @@ namespace Moq
         /// <exception cref="MockException">
         ///   The invocation was not called the number of times specified by <paramref name="times"/>.
         /// </exception>
-        public void VerifyRemove(Action<T> removeExpression, Func<Times> times, string failMessage)
+        public void VerifyRemove(Action<T> removeExpression, Func<Times> times, string? failMessage)
         {
             Guard.NotNull(removeExpression, nameof(removeExpression));
 

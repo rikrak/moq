@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -49,7 +50,7 @@ namespace Moq
         /// <remarks>
         /// Implementations may assume that all parameters have valid, non-<see langword="null"/>, non-<see langword="void"/> values.
         /// </remarks>
-        protected internal abstract object GetDefaultValue(Type type, Mock mock);
+        protected internal abstract object? GetDefaultValue(Type type, Mock mock);
 
         /// <summary>
         ///   <para>
@@ -65,7 +66,7 @@ namespace Moq
         /// <remarks>
         /// Implementations may assume that all parameters have valid, non-<see langword="null"/>, non-<see langword="void"/> values.
         /// </remarks>
-        protected internal virtual object GetDefaultParameterValue(ParameterInfo parameter, Mock mock)
+        protected internal virtual object? GetDefaultParameterValue(ParameterInfo parameter, Mock mock)
         {
             Guard.NotNull(mock);
             Guard.NotNull(parameter);
@@ -88,7 +89,7 @@ namespace Moq
         /// <remarks>
         /// Implementations may assume that all parameters have valid, non-<see langword="null"/>, non-<see langword="void"/> values.
         /// </remarks>
-        protected internal virtual object GetDefaultReturnValue(MethodInfo method, Mock mock)
+        protected internal virtual object? GetDefaultReturnValue(MethodInfo method, Mock mock)
         {
             Guard.NotNull(mock);
             Guard.NotNull(method);

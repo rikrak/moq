@@ -56,7 +56,7 @@ namespace Moq
         internal static MockException NoMatchingCalls(
             Mock rootMock,
             LambdaExpression expression,
-            string failMessage,
+            string? failMessage,
             Times times,
             int callCount)
         {

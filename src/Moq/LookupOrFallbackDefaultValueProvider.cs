@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -55,14 +56,14 @@ namespace Moq
             Dictionary<object, Func<Type, Mock, object>> factories;
     */
     {
-        Dictionary<object, Func<Type, Mock, object>> factories;
+        Dictionary<object, Func<Type, Mock, object?>?> factories;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LookupOrFallbackDefaultValueProvider"/> class.
         /// </summary>
         protected LookupOrFallbackDefaultValueProvider()
         {
-            this.factories = new Dictionary<object, Func<Type, Mock, object>>()
+            this.factories = new Dictionary<object, Func<Type, Mock, object?>?>()
             {
                 ["System.ValueTuple`1"] = CreateValueTupleOf,
                 ["System.ValueTuple`2"] = CreateValueTupleOf,
@@ -82,13 +83,18 @@ namespace Moq
         /// <param name="factoryKey">The type(s) for which to remove any registered factory function.</param>
         protected void Deregister(Type factoryKey)
         {
-            Debug.Assert(factoryKey != null);
+            Guard.NotNull(factoryKey);
 
             // NOTE: In order to be able to unregister the default logic for awaitable types,
             // we need a way (below) to know when to delegate to an `IAwaitableFactory`, and when not to.
             // This is why we only reset the dictionary entry instead of removing it.
             this.factories[factoryKey] = null;
-            this.factories[factoryKey.FullName] = null;
+            
+            var factoryKeyFullName = factoryKey.FullName;
+            if (factoryKeyFullName != null)
+            {
+                this.factories[factoryKeyFullName] = null;
+            }
         }
 
         /// <summary>
@@ -107,45 +113,47 @@ namespace Moq
         /// <param name="factory">The factory function responsible for producing values for the given type.</param>
         protected void Register(Type factoryKey, Func<Type, Mock, object> factory)
         {
-            Debug.Assert(factoryKey != null);
-            Debug.Assert(factory != null);
+            Guard.NotNull(factoryKey);
+            Guard.NotNull(factory);
 
             this.factories[factoryKey] = factory;
         }
 
         /// <inheritdoc/>
-        protected internal sealed override object GetDefaultParameterValue(ParameterInfo parameter, Mock mock)
+        protected internal sealed override object? GetDefaultParameterValue(ParameterInfo parameter, Mock mock)
         {
-            Debug.Assert(parameter != null);
+            Guard.NotNull(parameter);
             Debug.Assert(parameter.ParameterType != typeof(void));
-            Debug.Assert(mock != null);
+            Guard.NotNull(mock);
 
             return this.GetDefaultValue(parameter.ParameterType, mock);
         }
 
         /// <inheritdoc/>
-        protected internal sealed override object GetDefaultReturnValue(MethodInfo method, Mock mock)
+        protected internal sealed override object? GetDefaultReturnValue(MethodInfo method, Mock mock)
         {
-            Debug.Assert(method != null);
+            Guard.NotNull(method);
             Debug.Assert(method.ReturnType != typeof(void));
-            Debug.Assert(mock != null);
+            Guard.NotNull(mock);
 
             return this.GetDefaultValue(method.ReturnType, mock);
         }
 
         /// <inheritdoc/>
-        protected internal sealed override object GetDefaultValue(Type type, Mock mock)
+        protected internal sealed override object? GetDefaultValue(Type type, Mock mock)
         {
-            Debug.Assert(type != null);
+            Guard.NotNull(type);
             Debug.Assert(type != typeof(void));
-            Debug.Assert(mock != null);
+            Guard.NotNull(mock);
 
             var handlerKey = type.IsGenericType ? type.GetGenericTypeDefinition()
                            : type.IsArray ? typeof(Array)
                            : type;
 
-            Func<Type, Mock, object> factory;
-            if (this.factories.TryGetValue(handlerKey, out factory) || this.factories.TryGetValue(handlerKey.FullName, out factory))
+            Func<Type, Mock, object?>? factory;
+
+            var handlerKeyFullName = handlerKey.FullName;
+            if (this.factories.TryGetValue(handlerKey, out factory) || (handlerKeyFullName != null && this.factories.TryGetValue(handlerKeyFullName, out factory)))
             {
                 if (factory != null)  // This prevents delegation to an `IAwaitableFactory` for deregistered awaitable types; see note above.
                 {
@@ -168,11 +176,11 @@ namespace Moq
         /// </summary>
         /// <param name="type">The type of which to produce a value.</param>
         /// <param name="mock">The <see cref="Moq.Mock"/> on which an unexpected invocation has occurred.</param>
-        protected virtual object GetFallbackDefaultValue(Type type, Mock mock)
+        protected virtual object? GetFallbackDefaultValue(Type type, Mock mock)
         {
-            Debug.Assert(type != null);
+            Guard.NotNull(type);
             Debug.Assert(type != typeof(void));
-            Debug.Assert(mock != null);
+            Guard.NotNull(mock);
 
             return type.GetDefaultValue();
 
@@ -198,10 +206,10 @@ namespace Moq
             */
         }
 
-        object CreateValueTupleOf(Type type, Mock mock)
+        object? CreateValueTupleOf(Type type, Mock mock)
         {
             var itemTypes = type.GetGenericArguments();
-            var items = new object[itemTypes.Length];
+            var items = new object?[itemTypes.Length];
             for (int i = 0, n = itemTypes.Length; i < n; ++i)
             {
                 items[i] = this.GetDefaultValue(itemTypes[i], mock);

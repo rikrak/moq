@@ -150,7 +150,7 @@ namespace Moq
         /// </summary>
         public abstract bool CallBase { get; set; }
 
-        internal abstract object[] ConstructorArguments { get; }
+        internal abstract object?[] ConstructorArguments { get; }
 
         /// <summary>
         ///   Specifies the behavior to use when returning default values for unexpected invocations on loose mocks.
@@ -312,7 +312,7 @@ namespace Moq
             }
         }
 
-        internal static void Verify(Mock mock, LambdaExpression expression, Times times, string failMessage)
+        internal static void Verify(Mock mock, LambdaExpression expression, Times times, string? failMessage)
         {
             Guard.NotNull(times, nameof(times));
 
@@ -345,7 +345,7 @@ namespace Moq
             Mock.Verify(mock, expression, times, failMessage);
         }
 
-        internal static void VerifySet(Mock mock, LambdaExpression expression, Times times, string failMessage)
+        internal static void VerifySet(Mock mock, LambdaExpression expression, Times times, string? failMessage)
         {
             Guard.NotNull(expression, nameof(expression));
             Guard.IsAssignmentToPropertyOrIndexer(expression, nameof(expression));
@@ -353,7 +353,7 @@ namespace Moq
             Mock.Verify(mock, expression, times, failMessage);
         }
 
-        internal static void VerifyAdd(Mock mock, LambdaExpression expression, Times times, string failMessage)
+        internal static void VerifyAdd(Mock mock, LambdaExpression expression, Times times, string? failMessage)
         {
             Guard.NotNull(expression, nameof(expression));
             Guard.IsEventAdd(expression, nameof(expression));
@@ -361,7 +361,7 @@ namespace Moq
             Mock.Verify(mock, expression, times, failMessage);
         }
 
-        internal static void VerifyRemove(Mock mock, LambdaExpression expression, Times times, string failMessage)
+        internal static void VerifyRemove(Mock mock, LambdaExpression expression, Times times, string? failMessage)
         {
             Guard.NotNull(expression, nameof(expression));
             Guard.IsEventRemove(expression, nameof(expression));
@@ -567,7 +567,7 @@ namespace Moq
             });
         }
 
-        internal static MethodCall SetupGet(Mock mock, LambdaExpression expression, Condition condition)
+        internal static MethodCall SetupGet(Mock mock, LambdaExpression expression, Condition? condition)
         {
             Guard.NotNull(expression, nameof(expression));
 
@@ -580,7 +580,7 @@ namespace Moq
             return Mock.Setup(mock, expression, condition);
         }
 
-        internal static MethodCall SetupSet(Mock mock, LambdaExpression expression, Condition condition)
+        internal static MethodCall SetupSet(Mock mock, LambdaExpression expression, Condition? condition)
         {
             Guard.NotNull(expression, nameof(expression));
             Guard.IsAssignmentToPropertyOrIndexer(expression, nameof(expression));
@@ -645,7 +645,7 @@ namespace Moq
             return true;
         }
 
-        internal static MethodCall SetupAdd(Mock mock, LambdaExpression expression, Condition condition)
+        internal static MethodCall SetupAdd(Mock mock, LambdaExpression expression, Condition? condition)
         {
             Guard.NotNull(expression, nameof(expression));
             Guard.IsEventAdd(expression, nameof(expression));
@@ -653,7 +653,7 @@ namespace Moq
             return Mock.Setup(mock, expression, condition);
         }
 
-        internal static MethodCall SetupRemove(Mock mock, LambdaExpression expression, Condition condition)
+        internal static MethodCall SetupRemove(Mock mock, LambdaExpression expression, Condition? condition)
         {
             Guard.NotNull(expression, nameof(expression));
             Guard.IsEventRemove(expression, nameof(expression));

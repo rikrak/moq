@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -28,7 +29,7 @@ namespace Moq
         /// Assert.Equal("Hello!", parameters.Single());
         /// </code>
         /// </example>
-        public static T In<T>(ICollection<T> collection)
+        public static T? In<T>(ICollection<T> collection)
         {
             var match = new CaptureMatch<T>(collection.Add);
             return With(match);
@@ -51,7 +52,7 @@ namespace Moq
         /// Assert.Equal("Hello!", parameters.Single());
         /// </code>
         /// </example>
-        public static T In<T>(IList<T> collection, Expression<Func<T, bool>> predicate)
+        public static T? In<T>(IList<T> collection, Expression<Func<T, bool>> predicate)
         {
             var match = new CaptureMatch<T>(collection.Add, predicate);
             return With(match);
@@ -73,7 +74,7 @@ namespace Moq
         /// Assert.Equal("Hello!", capturedValue);
         /// </code>
         /// </example>
-        public static T With<T>(CaptureMatch<T> match)
+        public static T? With<T>(CaptureMatch<T> match)
         {
             Match.Register(match);
             return default(T);

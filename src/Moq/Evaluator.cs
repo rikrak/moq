@@ -1,8 +1,10 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 namespace Moq
@@ -111,12 +113,14 @@ namespace Moq
                 this.candidates = candidates;
             }
 
-            internal Expression Eval(Expression exp)
+            [return: NotNullIfNotNull("exp")]
+            internal Expression? Eval(Expression? exp)
             {
                 return this.Visit(exp);
             }
 
-            public override Expression Visit(Expression exp)
+            [return: NotNullIfNotNull("exp")]
+            public override Expression? Visit(Expression? exp)
             {
                 if (exp == null)
                 {
@@ -223,7 +227,7 @@ namespace Moq
         */
         {
             Func<Expression, bool> fnCanBeEvaluated;
-            HashSet<Expression> candidates;
+            HashSet<Expression>? candidates;
             bool cannotBeEvaluated;
 
             internal Nominator(Func<Expression, bool> fnCanBeEvaluated)
@@ -238,7 +242,8 @@ namespace Moq
                 return this.candidates;
             }
 
-            public override Expression Visit(Expression expression)
+            [return: NotNullIfNotNull("expression")]
+            public override Expression? Visit(Expression? expression)
             {
                 if (expression != null && expression.NodeType != ExpressionType.Quote)
                 {
@@ -259,7 +264,7 @@ namespace Moq
 
                         if (canBeEvaluated)
                         {
-                            this.candidates.Add(expression);
+                            this.candidates?.Add(expression);
                         }
                         else
                         {

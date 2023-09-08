@@ -1,8 +1,10 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace Moq
@@ -51,11 +53,11 @@ namespace Moq
             readonly Dictionary<EventInfo, Delegate> eventHandlers;
     */
     {
-        readonly Dictionary<EventInfo, Delegate> eventHandlers;
+        readonly Dictionary<EventInfo, Delegate?> eventHandlers;
 
         public EventHandlerCollection()
         {
-            this.eventHandlers = new Dictionary<EventInfo, Delegate>();
+            this.eventHandlers = new Dictionary<EventInfo, Delegate?>();
         }
 
         public void Add(EventInfo @event, Delegate eventHandler)
@@ -82,7 +84,7 @@ namespace Moq
             }
         }
 
-        public bool TryGet(EventInfo @event, out Delegate handlers)
+        public bool TryGet(EventInfo @event, [NotNullWhen(true)] out Delegate? handlers)
         {
             lock (this.eventHandlers)
             {
@@ -111,7 +113,7 @@ namespace Moq
             }
         }
 
-        Delegate TryGet(EventInfo @event)
+        Delegate? TryGet(EventInfo @event)
         {
             return this.eventHandlers.TryGetValue(@event, out var handlers) ? handlers : null;
         }

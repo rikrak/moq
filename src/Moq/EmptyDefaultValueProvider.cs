@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -71,6 +72,7 @@ namespace Moq
         static object CreateArray(Type type, Mock mock)
         {
             var elementType = type.GetElementType();
+            Guard.NotNull(elementType);
             var lengths = new int[type.GetArrayRank()];
             return Array.CreateInstance(elementType, lengths);
 
@@ -98,7 +100,7 @@ namespace Moq
 
         static object CreateEnumerable(Type type, Mock mock)
         {
-            return new object[0];
+            return Array.Empty<object>();
 
             /* Unmerged change from project 'Moq(netstandard2.0)'
             Before:
@@ -151,7 +153,7 @@ namespace Moq
 
         static object CreateQueryable(Type type, Mock mock)
         {
-            return new object[0].AsQueryable();
+            return Array.Empty<object>().AsQueryable();
 
             /* Unmerged change from project 'Moq(netstandard2.0)'
             Before:
@@ -183,7 +185,7 @@ namespace Moq
             return typeof(Queryable).GetMethods("AsQueryable")
                 .Single(x => x.IsGenericMethod)
                 .MakeGenericMethod(elementType)
-                .Invoke(null, new[] { array });
+                .Invoke(null, new[] { array }) ?? throw new InvalidOperationException($"A Queryable object could not be generated for {type}");
         }
     }
 }

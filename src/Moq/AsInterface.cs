@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -64,7 +65,7 @@ namespace Moq
 
         internal override Dictionary<Type, object> ConfiguredDefaultValues => this.owner.ConfiguredDefaultValues;
 
-        internal override object[] ConstructorArguments => this.owner.ConstructorArguments;
+        internal override object?[] ConstructorArguments => this.owner.ConstructorArguments;
 
         internal override InvocationCollection MutableInvocations => this.owner.MutableInvocations;
 
@@ -92,7 +93,7 @@ namespace Moq
 
         public override TInterface Object
         {
-            get { return this.owner.Object as TInterface; }
+            get { return (TInterface)this.owner.Object; }
         }
 
         internal override SetupCollection MutableSetups => this.owner.MutableSetups;
@@ -113,7 +114,7 @@ namespace Moq
             return this.owner.Object;
         }
 
-        public override string ToString()
+        public override string? ToString()
         {
             return this.owner.ToString();
         }
