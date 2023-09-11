@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -40,8 +41,8 @@ namespace Moq
     {
         public static Pair<IMatcher[], Expression[]> CreateMatchers(IReadOnlyList<Expression> arguments, ParameterInfo[] parameters)
         {
-            Debug.Assert(arguments != null);
-            Debug.Assert(parameters != null);
+            Guard.NotNull(arguments);
+            Guard.NotNull(parameters);
             Debug.Assert(arguments.Count == parameters.Length);
 
             var n = parameters.Length;
@@ -74,7 +75,7 @@ namespace Moq
                         if (member.Name == nameof(It.Ref<object>.IsAny))
                         {
                             var memberDeclaringType = member.DeclaringType;
-                            if (memberDeclaringType.IsGenericType)
+                            if (memberDeclaringType?.IsGenericType == true)
                             {
                                 var memberDeclaringTypeDefinition = memberDeclaringType.GetGenericTypeDefinition();
                                 if (memberDeclaringTypeDefinition == typeof(It.Ref<>))
@@ -98,7 +99,7 @@ namespace Moq
                 var newArrayExpression = (NewArrayExpression)argument;
 
                 Debug.Assert(newArrayExpression.Type.IsArray);
-                var elementType = newArrayExpression.Type.GetElementType();
+                var elementType = Guard.NotNull(newArrayExpression.Type.GetElementType());
 
                 var n = newArrayExpression.Expressions.Count;
                 var matchers = new IMatcher[n];

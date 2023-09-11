@@ -104,7 +104,7 @@ namespace Moq
         Behavior? raiseEvent;
         Behavior? returnOrThrow;
         Behavior? afterReturnCallback;
-        Condition condition;
+        Condition? condition;
         string? failMessage;
 
 
@@ -130,7 +130,7 @@ namespace Moq
         */
         string? declarationSite;
 
-        public MethodCall(Expression? originalExpression, Mock mock, Condition condition, MethodExpectation expectation)
+        public MethodCall(Expression? originalExpression, Mock mock, Condition? condition, MethodExpectation expectation)
             : base(originalExpression, mock, expectation)
         {
             this.condition = condition;
@@ -146,7 +146,7 @@ namespace Moq
             get => this.failMessage;
         }
 
-        public override Condition Condition => this.condition;
+        public override Condition? Condition => this.condition;
 
         public override IEnumerable<Mock> InnerMocks
         {

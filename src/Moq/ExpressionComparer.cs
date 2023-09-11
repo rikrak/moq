@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -63,7 +64,7 @@ namespace Moq
         {
         }
 
-        public bool Equals(Expression x, Expression y)
+        public bool Equals(Expression? x, Expression? y)
         {
             if (object.ReferenceEquals(x, y))
             {
@@ -177,7 +178,7 @@ namespace Moq
             return false;
         }
 
-        public int GetHashCode(Expression obj)
+        public int GetHashCode(Expression? obj)
         {
             return obj == null ? 0 : obj.GetHashCode();
 

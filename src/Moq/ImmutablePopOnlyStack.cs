@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -62,7 +63,7 @@ namespace Moq
 
         public ImmutablePopOnlyStack(IEnumerable<T> items)
         {
-            Debug.Assert(items != null);
+            Guard.NotNull(items);
 
             this.items = items.ToArray();
             this.index = 0;
@@ -91,7 +92,7 @@ namespace Moq
 
         ImmutablePopOnlyStack(T[] items, int index)
         {
-            Debug.Assert(items != null);
+            Guard.NotNull(items);
             Debug.Assert(0 <= index && index <= items.Length);
 
             this.items = items;

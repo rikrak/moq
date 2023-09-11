@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -52,7 +53,7 @@ namespace Moq
             Invocation[] invocations;
     */
     {
-        Invocation[] invocations;
+        Invocation[]? invocations;
 
 
         /* Unmerged change from project 'Moq(netstandard2.0)'
@@ -116,9 +117,7 @@ namespace Moq
 
         public InvocationCollection(Mock owner)
         {
-            Debug.Assert(owner != null);
-
-            this.owner = owner;
+            this.owner = Guard.NotNull(owner);
         }
 
         public int Count
@@ -138,7 +137,7 @@ namespace Moq
             {
                 lock (this.invocationsLock)
                 {
-                    if (this.count <= index || index < 0)
+                    if (this.invocations == null || this.count <= index || index < 0)
                     {
                         throw new IndexOutOfRangeException();
                     }
@@ -159,6 +158,7 @@ namespace Moq
                     this.capacity = targetCapacity;
                 }
 
+                Guard.NotNull(this.invocations);
                 this.invocations[this.count] = invocation;
                 this.count++;
             }
@@ -184,12 +184,15 @@ namespace Moq
             {
                 if (this.count == 0)
                 {
-                    return new Invocation[0];
+                    return Array.Empty<Invocation>();
                 }
 
                 var result = new Invocation[this.count];
 
-                Array.Copy(this.invocations, result, this.count);
+                if (this.invocations != null)
+                {
+                    Array.Copy(this.invocations, result, this.count);
+                }
 
                 return result;
             }
@@ -201,12 +204,12 @@ namespace Moq
             {
                 if (this.count == 0)
                 {
-                    return new Invocation[0];
+                    return Array.Empty<Invocation>();
                 }
 
                 var result = new List<Invocation>(this.count);
 
-                for (var i = 0; i < this.count; i++)
+                for (var i = 0; this.invocations != null && i < this.count; i++)
                 {
                     var invocation = this.invocations[i];
                     if (predicate(invocation))
@@ -227,7 +230,7 @@ namespace Moq
 
             lock (this.invocationsLock)
             {
-                collection = this.invocations;
+                collection = this.invocations ?? Array.Empty<Invocation>();
                 count = this.count;
             }
 

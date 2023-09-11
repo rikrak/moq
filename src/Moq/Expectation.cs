@@ -1,7 +1,9 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 using Moq.Async;
@@ -37,18 +39,18 @@ namespace Moq
     {
         public abstract LambdaExpression Expression { get; }
 
-        public virtual bool HasResultExpression(out IAwaitableFactory awaitableFactory)
+        public virtual bool HasResultExpression([NotNullWhen(true)] out IAwaitableFactory? awaitableFactory)
         {
             awaitableFactory = null;
             return false;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is Expectation other && this.Equals(other);
         }
 
-        public abstract bool Equals(Expectation other);
+        public abstract bool Equals(Expectation? other);
 
         public abstract override int GetHashCode();
 

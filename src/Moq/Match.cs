@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -62,31 +63,40 @@ namespace Moq
     /// </example>
     public abstract class Match : IMatcher
     {
+        /// <summary>
+        /// Creates a new instance of <see cref="Match"/>
+        /// </summary>
+        /// <param name="renderExpression"></param>
+        protected Match(Expression renderExpression)
+        {
+            Guard.NotNull(renderExpression);
+            this.RenderExpression = renderExpression;
+        }
         /// <devdoc>
         /// Provided for the sole purpose of rendering the delegate passed to the 
         /// matcher constructor if no friendly render lambda is provided.
         /// </devdoc>
-        internal static TValue Matcher<TValue>()
+        internal static TValue? Matcher<TValue>()
         {
             return default(TValue);
         }
 
-        internal abstract bool Matches(object argument, Type parameterType);
+        internal abstract bool Matches(object? argument, Type parameterType);
 
-        internal abstract void SetupEvaluatedSuccessfully(object argument, Type parameterType);
+        internal abstract void SetupEvaluatedSuccessfully(object? argument, Type parameterType);
 
-        bool IMatcher.Matches(object argument, Type parameterType) => this.Matches(argument, parameterType);
+        bool IMatcher.Matches(object? argument, Type parameterType) => this.Matches(argument, parameterType);
 
-        void IMatcher.SetupEvaluatedSuccessfully(object value, Type parameterType) => this.SetupEvaluatedSuccessfully(value, parameterType);
+        void IMatcher.SetupEvaluatedSuccessfully(object? value, Type parameterType) => this.SetupEvaluatedSuccessfully(value, parameterType);
 
-        internal Expression RenderExpression { get; set; }
+        internal Expression RenderExpression { get; }
 
         /// <summary>
         ///   Initializes the matcher with the condition that will be checked
         ///   in order to match invocation values.
         /// </summary>
         /// <param name="condition">The condition to match against actual values.</param>
-        public static T Create<T>(Predicate<T> condition)
+        public static T? Create<T>(Predicate<T?> condition)
         {
             Match.Register(new Match<T>(condition, () => Matcher<T>()));
             return default(T);
@@ -101,7 +111,7 @@ namespace Moq
         ///   A lambda representation of the matcher, to be used when rendering error messages,
         ///   such as <c>() => It.IsAny&lt;string&lt;()</c>.
         /// </param>
-        public static T Create<T>(Predicate<T> condition, Expression<Func<T>> renderExpression)
+        public static T? Create<T>(Predicate<T?> condition, Expression<Func<T?>> renderExpression)
         {
             Match.Register(new Match<T>(condition, renderExpression));
             return default(T);
@@ -125,7 +135,7 @@ namespace Moq
         /// <param name="renderExpression">
         ///   A lambda representation of the matcher.
         /// </param>
-        public static T Create<T>(Func<object, Type, bool> condition, Expression<Func<T>> renderExpression)
+        public static T? Create<T>(Func<object?, Type, bool> condition, Expression<Func<T?>> renderExpression)
         {
             Guard.NotNull(condition, nameof(condition));
             Guard.NotNull(renderExpression, nameof(renderExpression));
@@ -162,27 +172,27 @@ namespace Moq
     /// <typeparam name="T">Type of the value to match.</typeparam>
     public class Match<T> : Match, IEquatable<Match<T>>
     {
-        internal Predicate<T> Condition { get; set; }
-        internal Action<T> Success { get; set; }
+        internal Predicate<T?> Condition { get; set; }
+        internal Action<T?>? Success { get; set; }
 
-        internal Match(Predicate<T> condition, Expression<Func<T>> renderExpression, Action<T> success = null)
+        internal Match(Predicate<T?> condition, Expression<Func<T?>> renderExpression, Action<T?>? success = null)
+            :base(renderExpression.Body.Apply(EvaluateCaptures.Rewriter))
         {
             this.Condition = condition;
-            this.RenderExpression = renderExpression.Body.Apply(EvaluateCaptures.Rewriter);
             this.Success = success;
         }
 
-        internal override bool Matches(object argument, Type parameterType)
+        internal override bool Matches(object? argument, Type parameterType)
         {
-            return CanCast(argument) && this.Condition((T)argument);
+            return CanCast(argument) && this.Condition((T?)argument);
         }
 
-        internal override void SetupEvaluatedSuccessfully(object argument, Type parameterType)
+        internal override void SetupEvaluatedSuccessfully(object? argument, Type parameterType)
         {
             Debug.Assert(this.Matches(argument, parameterType));
             Debug.Assert(CanCast(argument));
 
-            this.Success?.Invoke((T)argument);
+            this.Success?.Invoke((T?)argument);
 
             /* Unmerged change from project 'Moq(netstandard2.0)'
             Before:
@@ -206,7 +216,7 @@ namespace Moq
             */
         }
 
-        static bool CanCast(object value)
+        static bool CanCast(object? value)
         {
             if (value != null)
             {
@@ -220,14 +230,18 @@ namespace Moq
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is Match<T> other && this.Equals(other);
         }
 
         /// <inheritdoc/>
-        public bool Equals(Match<T> other)
+        public bool Equals(Match<T>? other)
         {
+            if (other == null)
+            {
+                return false;
+            }
             if (this.Condition == other.Condition)
             {
                 return true;
@@ -297,24 +311,23 @@ namespace Moq
             readonly Func<object, Type, bool> condition;
     */
     {
-        readonly Func<object, Type, bool> condition;
+        readonly Func<object?, Type, bool> condition;
 
-        internal MatchFactory(Func<object, Type, bool> condition, LambdaExpression renderExpression)
+        internal MatchFactory(Func<object?, Type, bool> condition, LambdaExpression renderExpression)
+            : base(renderExpression.Body.Apply(EvaluateCaptures.Rewriter))
         {
-            Debug.Assert(condition != null);
-            Debug.Assert(renderExpression != null);
-
+            Guard.NotNull(condition);
+    
             this.condition = condition;
-            this.RenderExpression = renderExpression.Body.Apply(EvaluateCaptures.Rewriter);
         }
 
-        internal override bool Matches(object argument, Type parameterType)
+        internal override bool Matches(object? argument, Type parameterType)
         {
-            var canCast = (Predicate<object>)Delegate.CreateDelegate(typeof(Predicate<object>), canCastMethod.MakeGenericMethod(parameterType));
+            var canCast = (Predicate<object?>)Delegate.CreateDelegate(typeof(Predicate<object>), canCastMethod.MakeGenericMethod(parameterType));
             return canCast(argument) && condition(argument, parameterType);
         }
 
-        internal override void SetupEvaluatedSuccessfully(object argument, Type parameterType)
+        internal override void SetupEvaluatedSuccessfully(object? argument, Type parameterType)
         {
             Debug.Assert(this.Matches(argument, parameterType));
 
@@ -340,7 +353,7 @@ namespace Moq
             */
         }
 
-        static bool CanCast<T>(object value)
+        static bool CanCast<T>(object? value)
         {
             if (value != null)
             {
@@ -374,7 +387,7 @@ namespace Moq
             }
         }
 
-        static readonly MethodInfo canCastMethod = typeof(MatchFactory).GetMethod("CanCast", BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly);
+        static readonly MethodInfo canCastMethod = Guard.NotNull(typeof(MatchFactory).GetMethod(nameof(MatchFactory.CanCast), BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly));
 
         // TODO: Check whether we need to implement `IEquatable<>` to make this work with delegate-based
         // setup & verification methods such as `SetupSet`!

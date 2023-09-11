@@ -1,9 +1,11 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
@@ -85,7 +87,7 @@ namespace Moq
             return ExpressionCompiler.Instance.Compile(expression);
         }
 
-        public static bool IsMatch(this Expression expression, out Match match)
+        public static bool IsMatch(this Expression expression, [NotNullWhen(true)] out Match? match)
         {
             if (expression is MatchExpression matchExpression)
             {
@@ -160,11 +162,11 @@ namespace Moq
         /// </exception>
         internal static Stack<MethodExpectation> Split(this LambdaExpression expression, bool allowNonOverridableLastProperty = false)
         {
-            Debug.Assert(expression != null);
+            Guard.NotNull(expression);
 
             var parts = new Stack<MethodExpectation>();
 
-            Expression remainder = expression.Body;
+            var remainder = expression.Body;
             while (CanSplit(remainder))
             {
                 Split(remainder, out remainder, out var part, allowNonOverridableLastProperty: allowNonOverridableLastProperty && parts.Count == 0);
@@ -233,7 +235,7 @@ namespace Moq
 
                             if (!methodCallExpression.Method.IsStatic)
                             {
-                                r = methodCallExpression.Object;
+                                r = Guard.NotNull(methodCallExpression.Object);
                                 var parameter = Expression.Parameter(r.Type, r is ParameterExpression ope ? ope.Name : ParameterName);
                                 var method = methodCallExpression.Method;
                                 var arguments = methodCallExpression.Arguments;
@@ -266,11 +268,11 @@ namespace Moq
                     case ExpressionType.Index:  // indexer query
                         {
                             var indexExpression = (IndexExpression)e;
-                            r = indexExpression.Object;
+                            r = Guard.NotNull(indexExpression.Object);
                             var parameter = Expression.Parameter(r.Type, r is ParameterExpression ope ? ope.Name : ParameterName);
-                            var indexer = indexExpression.Indexer;
+                            var indexer = Guard.NotNull(indexExpression.Indexer);
                             var arguments = indexExpression.Arguments;
-                            MethodInfo method;
+                            MethodInfo? method;
                             if (!assignment && indexer.CanRead(out var getter, out var getterIndexer))
                             {
                                 method = getter;
@@ -285,6 +287,8 @@ namespace Moq
                             {
                                 method = null;
                             }
+
+                            Guard.NotNull(method);
                             p = new MethodExpectation(
                                         expression: Expression.Lambda(
                                             Expression.MakeIndex(parameter, indexer, arguments),
@@ -303,11 +307,13 @@ namespace Moq
                             r = invocationExpression.Expression;
                             var parameter = Expression.Parameter(r.Type, r is ParameterExpression ope ? ope.Name : ParameterName);
                             var arguments = invocationExpression.Arguments;
+                            var invokeMethod = r.Type.GetMethod("Invoke", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                            Guard.NotNull(invokeMethod);
                             p = new MethodExpectation(
                                         expression: Expression.Lambda(
                                             Expression.Invoke(parameter, arguments),
                                             parameter),
-                                        method: r.Type.GetMethod("Invoke", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance),
+                                        method: invokeMethod,
                                         arguments);
                             return;
                         }
@@ -319,17 +325,18 @@ namespace Moq
 
                             if (IsResult(memberAccessExpression.Member, out var awaitableFactory))
                             {
-                                Split(memberAccessExpression.Expression, out r, out p);
+                                var theExpression = Guard.NotNull(memberAccessExpression.Expression);
+                                Split(theExpression, out r, out p);
                                 p.AddResultExpression(
                                     awaitable => Expression.MakeMemberAccess(awaitable, memberAccessExpression.Member),
                                     awaitableFactory);
                                 return;
                             }
 
-                            r = memberAccessExpression.Expression;
+                            r = Guard.NotNull(memberAccessExpression.Expression);
                             var parameter = Expression.Parameter(r.Type, r is ParameterExpression ope ? ope.Name : ParameterName);
                             var property = memberAccessExpression.GetReboundProperty();
-                            MethodInfo method;
+                            MethodInfo? method;
                             if (!assignment && property.CanRead(out var getter, out var getterProperty))
                             {
                                 method = getter;
@@ -344,6 +351,8 @@ namespace Moq
                             {
                                 method = null;
                             }
+
+                            Guard.NotNull(method);
                             p = new MethodExpectation(
                                         expression: Expression.Lambda(
                                             Expression.MakeMemberAccess(parameter, property),
@@ -360,9 +369,9 @@ namespace Moq
                 }
             }
 
-            bool IsResult(MemberInfo member, out IAwaitableFactory awaitableFactory)
+            bool IsResult(MemberInfo member, [NotNullWhen(true)] out IAwaitableFactory? awaitableFactory)
             {
-                var instanceType = member.DeclaringType;
+                var instanceType = Guard.NotNull(member.DeclaringType);
                 awaitableFactory = AwaitableFactory.TryGet(instanceType);
                 var returnType = member switch
                 {
@@ -384,10 +393,10 @@ namespace Moq
             // the expression. we attempt to correct this here by checking whether the type of the accessed object
             // has a property by the same name whose base definition equals the property in the expression; if so,
             // we "upgrade" to the derived property.
-            if (property.DeclaringType != expression.Expression.Type)
+            if (property.DeclaringType != expression.Expression?.Type)
             {
                 var parameterTypes = new ParameterTypes(property.GetIndexParameters());
-                var derivedProperty = expression.Expression.Type
+                var derivedProperty = expression.Expression?.Type
                     .GetMember(property.Name, MemberTypes.Property, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                     .Cast<PropertyInfo>()
                     .SingleOrDefault(p =>
@@ -427,7 +436,7 @@ namespace Moq
         /// </summary>
         public static bool IsProperty(this LambdaExpression expression)
         {
-            Debug.Assert(expression != null);
+            Guard.NotNull(expression);
 
             return expression.Body is MemberExpression memberExpression && memberExpression.Member is PropertyInfo;
         }
@@ -437,7 +446,7 @@ namespace Moq
         /// </summary>
         public static bool IsPropertyIndexer(this LambdaExpression expression)
         {
-            Debug.Assert(expression != null);
+            Guard.NotNull(expression);
 
             return expression.Body is IndexExpression
                 || (expression.Body is MethodCallExpression methodCallExpression && methodCallExpression.Method.IsSpecialName);
@@ -445,7 +454,7 @@ namespace Moq
 
         public static Expression<Action<TMock>> AssignItIsAny<TMock, T>(this Expression<Func<TMock, T>> expression)
         {
-            Debug.Assert(expression != null);
+            Guard.NotNull(expression);
             Debug.Assert(expression.Body is MemberExpression || expression.Body is IndexExpression);
 
             return Expression.Lambda<Action<TMock>>(

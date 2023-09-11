@@ -1,9 +1,11 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -59,13 +61,17 @@ namespace Moq
                 for (int i = 0; i < n; ++i)
                 {
                     var parameterType = parameterTypes[i];
-                    if (parameterType.IsByRef) parameterType = parameterType.GetElementType();
+                    if (parameterType.IsByRef)
+                    {
+                        parameterType = parameterType.GetElementType()!;
+                    }
                     arguments[i] = E.Constant(invocation.Arguments[i], parameterType);
                 }
             }
 
             LambdaExpression expression;
             {
+                Guard.NotNull(method.DeclaringType);
                 var mock = E.Parameter(method.DeclaringType, "mock");
                 expression = E.Lambda(E.Call(mock, method, arguments).Apply(UpgradePropertyAccessorMethods.Rewriter), mock);
             }
@@ -108,8 +114,8 @@ namespace Moq
             */
         }
 
-        static readonly Expression[] noArguments = new Expression[0];
-        static readonly IMatcher[] noArgumentMatchers = new IMatcher[0];
+        static readonly Expression[] noArguments = Array.Empty<Expression>();
+        static readonly IMatcher[] noArgumentMatchers = Array.Empty<IMatcher>();
 
 
         /* Unmerged change from project 'Moq(netstandard2.0)'
@@ -176,9 +182,9 @@ namespace Moq
                 Expression[] partiallyEvaluatedArguments;
         */
         readonly IMatcher[] argumentMatchers;
-        IAwaitableFactory awaitableFactory;
-        MethodInfo methodImplementation;
-        Expression[] partiallyEvaluatedArguments;
+        IAwaitableFactory? awaitableFactory;
+        MethodInfo? methodImplementation;
+        Expression[]? partiallyEvaluatedArguments;
 #if DEBUG
 
         /* Unmerged change from project 'Moq(netstandard2.0)'
@@ -201,7 +207,7 @@ namespace Moq
         After:
                 Type proxyType;
         */
-        Type proxyType;
+        Type? proxyType;
 #endif
 
         /* Unmerged change from project 'Moq(netstandard2.0)'
@@ -226,10 +232,10 @@ namespace Moq
         */
         readonly bool exactGenericTypeArguments;
 
-        public MethodExpectation(LambdaExpression expression, MethodInfo method, IReadOnlyList<Expression> arguments = null, bool exactGenericTypeArguments = false, bool skipMatcherInitialization = false, bool allowNonOverridable = false)
+        public MethodExpectation(LambdaExpression expression, MethodInfo method, IReadOnlyList<Expression>? arguments = null, bool exactGenericTypeArguments = false, bool skipMatcherInitialization = false, bool allowNonOverridable = false)
         {
-            Debug.Assert(expression != null);
-            Debug.Assert(method != null);
+            Guard.NotNull(expression);
+            Guard.NotNull(method);
 
             if (!allowNonOverridable)  // the sole currently known legitimate case where this evaluates to `false` is when setting non-overridable properties via LINQ to Mocks
             {
@@ -260,7 +266,7 @@ namespace Moq
             this.awaitableFactory = awaitableFactory;
         }
 
-        public override bool HasResultExpression(out IAwaitableFactory awaitableFactory)
+        public override bool HasResultExpression([NotNullWhen(true)] out IAwaitableFactory? awaitableFactory)
         {
             return (awaitableFactory = this.awaitableFactory) != null;
         }
@@ -369,7 +375,7 @@ namespace Moq
             return true;
         }
 
-        public override bool Equals(Expectation obj)
+        public override bool Equals(Expectation? obj)
         {
             if (obj is not MethodExpectation other) return false;
 
@@ -453,7 +459,7 @@ namespace Moq
 
         static Expression[] PartiallyEvaluateArguments(IReadOnlyList<Expression> arguments)
         {
-            Debug.Assert(arguments != null);
+            Guard.NotNull(arguments);
 
             if (arguments.Count == 0)
             {

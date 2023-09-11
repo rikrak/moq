@@ -1,9 +1,11 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Moq
@@ -42,7 +44,7 @@ namespace Moq
     sealed class MatcherObserver : IDisposable
     {
         [ThreadStatic]
-        static Stack<MatcherObserver> activations;
+        static Stack<MatcherObserver>? activations;
 
         public static MatcherObserver Activate()
         {
@@ -58,7 +60,7 @@ namespace Moq
             return activation;
         }
 
-        public static bool IsActive(out MatcherObserver observer)
+        public static bool IsActive([NotNullWhen(true)]out MatcherObserver? observer)
         {
             var activations = MatcherObserver.activations;
 
@@ -102,7 +104,7 @@ namespace Moq
         }
 
         int timestamp;
-        List<Observation> observations;
+        List<Observation>? observations;
 
 
         /* Unmerged change from project 'Moq(netstandard2.0)'
@@ -133,7 +135,7 @@ namespace Moq
         {
             var activations = MatcherObserver.activations;
             Debug.Assert(activations != null && activations.Count > 0);
-            activations.Pop();
+            activations?.Pop();
         }
 
         /// <summary>
@@ -163,7 +165,7 @@ namespace Moq
         ///   and if so, returns the last one.
         /// </summary>
         /// <param name="match">The observed <see cref="Match"/> matcher observed last.</param>
-        public bool TryGetLastMatch(out Match match)
+        public bool TryGetLastMatch([NotNullWhen(true)] out Match? match)
         {
             if (this.observations != null && this.observations.Count > 0)
             {

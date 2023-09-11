@@ -54,7 +54,7 @@ namespace Moq
     {
         object value;
 
-        public StubbedPropertySetup(Mock mock, LambdaExpression expression, MethodInfo getter, MethodInfo setter, object initialValue)
+        public StubbedPropertySetup(Mock mock, LambdaExpression expression, MethodInfo? getter, MethodInfo? setter, object initialValue)
             : base(originalExpression: null, mock, new PropertyAccessorExpectation(expression, getter, setter))
         {
             // NOTE:
@@ -166,10 +166,10 @@ namespace Moq
         */
         {
             readonly LambdaExpression expression;
-            readonly MethodInfo getter;
-            readonly MethodInfo setter;
+            readonly MethodInfo? getter;
+            readonly MethodInfo? setter;
 
-            public PropertyAccessorExpectation(LambdaExpression expression, MethodInfo getter, MethodInfo setter)
+            public PropertyAccessorExpectation(LambdaExpression expression, MethodInfo? getter, MethodInfo? setter)
             {
                 Debug.Assert(expression != null);
                 Debug.Assert(expression.IsProperty());

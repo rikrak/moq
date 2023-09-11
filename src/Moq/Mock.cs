@@ -1,9 +1,11 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
@@ -17,12 +19,11 @@ namespace Moq
 {
     /// <summary>
     ///   Base class for mocks and static helper class with methods that apply to mocked objects,
-    ///   such as <see cref="Get"/> to retrieve a <see cref="Mock{T}"/> from an object instance.
+    ///   such as <see cref="Get{T}"/> to retrieve a <see cref="Mock{T}"/> from an object instance.
     /// </summary>
     public abstract partial class Mock : IFluentInterface
     {
-        internal static readonly MethodInfo GetMethod =
-            typeof(Mock).GetMethod(nameof(Get), BindingFlags.Public | BindingFlags.Static);
+        internal static readonly MethodInfo GetMethod = Guard.NotNull(typeof(Mock).GetMethod(nameof(Get), BindingFlags.Public | BindingFlags.Static));
 
         /// <summary>
         ///   Initializes a new instance of the <see cref="Mock"/> class.
@@ -257,7 +258,7 @@ namespace Moq
         /// <exception cref="MockException">At least one expectation was not met.</exception>
         /// <example>
         ///   This example sets up an expectation without marking it as verifiable.
-        ///   After the mock is used, a <see cref="VerifyAll"/> call is issued on the mock
+        ///   After the mock is used, a <see cref="VerifyAll()"/> call is issued on the mock
         ///   to ensure that all expectations are met:
         ///   <code>
         ///     var mock = new Mock&lt;IWarehouse&gt;();
@@ -399,7 +400,7 @@ namespace Moq
         {
             if (!verifiedMocks.Add(mock)) return;
 
-            var unverifiedInvocations = mock.MutableInvocations.ToArray(invocation => !invocation.IsVerified);
+            Invocation?[] unverifiedInvocations = mock.MutableInvocations.ToArray(invocation => !invocation.IsVerified);
 
             var innerMocks = mock.MutableSetups.FindAllInnerMocks();
 
@@ -417,7 +418,7 @@ namespace Moq
                         // In order for an invocation to be "transitive", its return value has to be a
                         // sub-object (inner mock); and that sub-object has to have received at least
                         // one call:
-                        var wasTransitiveInvocation = mock.MutableSetups.FindLastInnerMock(setup => setup.Matches(unverifiedInvocations[i])) is Mock innerMock
+                        var wasTransitiveInvocation = mock.MutableSetups.FindLastInnerMock(setup => setup.Matches(unverifiedInvocations[i]!)) is Mock innerMock
                                                       && innerMock.MutableInvocations.Any();
                         if (wasTransitiveInvocation)
                         {
@@ -427,7 +428,7 @@ namespace Moq
                 }
 
                 // "Transitive" invocations have been nulled out. Let's see what's left:
-                var remainingUnverifiedInvocations = unverifiedInvocations.Where(i => i != null);
+                var remainingUnverifiedInvocations = unverifiedInvocations.Where(i => i != null).Select(i => i!).ToArray();
                 if (remainingUnverifiedInvocations.Any())
                 {
                     throw MockException.UnverifiedInvocations(mock, remainingUnverifiedInvocations);
@@ -468,8 +469,8 @@ namespace Moq
             LambdaExpression expression,
             out List<Pair<Invocation, MethodExpectation>> invocationsToBeMarkedAsVerified)
         {
-            Debug.Assert(mock != null);
-            Debug.Assert(expression != null);
+            Guard.NotNull(mock);
+            Guard.NotNull(expression);
 
             invocationsToBeMarkedAsVerified = new List<Pair<Invocation, MethodExpectation>>();
             return Mock.GetMatchingInvocationCount(
@@ -588,8 +589,7 @@ namespace Moq
             return Mock.Setup(mock, expression, condition);
         }
 
-        internal static readonly MethodInfo SetupReturnsMethod =
-            typeof(Mock).GetMethod(nameof(SetupReturns), BindingFlags.NonPublic | BindingFlags.Static);
+        internal static readonly MethodInfo SetupReturnsMethod = Guard.NotNull(typeof(Mock).GetMethod(nameof(SetupReturns), BindingFlags.NonPublic | BindingFlags.Static));
 
         // This specialized setup method is used to set up a single `Mock.Of` predicate.
         // Unlike other setup methods, LINQ to Mocks can set non-interceptable properties, which is handy when initializing DTOs.
@@ -718,12 +718,12 @@ namespace Moq
             */
         }
 
-        static TSetup SetupRecursive<TSetup>(Mock mock, LambdaExpression expression, Func<Mock, Expression, MethodExpectation, TSetup> setupLast, bool allowNonOverridableLastProperty = false)
+        static TSetup? SetupRecursive<TSetup>(Mock mock, LambdaExpression expression, Func<Mock, Expression, MethodExpectation, TSetup> setupLast, bool allowNonOverridableLastProperty = false)
             where TSetup : ISetup
         {
-            Debug.Assert(mock != null);
-            Debug.Assert(expression != null);
-            Debug.Assert(setupLast != null);
+            Guard.NotNull(mock);
+            Guard.NotNull(expression);
+            Guard.NotNull(setupLast);
 
             var parts = expression.Split(allowNonOverridableLastProperty);
             return Mock.SetupRecursive(mock, originalExpression: expression, parts, setupLast);
@@ -750,7 +750,7 @@ namespace Moq
             */
         }
 
-        static TSetup SetupRecursive<TSetup>(Mock mock, LambdaExpression originalExpression, Stack<MethodExpectation> parts, Func<Mock, Expression, MethodExpectation, TSetup> setupLast)
+        static TSetup? SetupRecursive<TSetup>(Mock mock, LambdaExpression originalExpression, Stack<MethodExpectation> parts, Func<Mock, Expression, MethodExpectation, TSetup> setupLast)
             where TSetup : ISetup
         {
             var part = parts.Pop();
@@ -762,7 +762,7 @@ namespace Moq
             }
             else
             {
-                Mock innerMock = mock.MutableSetups.FindLastInnerMock(setup => setup.Matches(part));
+                Mock? innerMock = mock.MutableSetups.FindLastInnerMock(setup => setup.Matches(part));
                 if (innerMock == null)
                 {
                     var returnValue = mock.GetDefaultValue(method, out innerMock, useAlternateProvider: DefaultValueProvider.Mock);
@@ -801,16 +801,16 @@ namespace Moq
             Mock.RaiseEvent(mock, expression, parts, arguments);
         }
 
-        internal static Task RaiseEventAsync<T>(Mock mock, Action<T> action, object[] arguments)
+        internal static Task? RaiseEventAsync<T>(Mock mock, Action<T> action, object[] arguments)
         {
             Guard.NotNull(action, nameof(action));
 
             var expression = ExpressionReconstructor.Instance.ReconstructExpression(action, mock.ConstructorArguments);
             var parts = expression.Split();
-            return (Task)Mock.RaiseEvent(mock, expression, parts, arguments);
+            return (Task?)Mock.RaiseEvent(mock, expression, parts, arguments);
         }
 
-        internal static object RaiseEvent(Mock mock, LambdaExpression expression, Stack<MethodExpectation> parts, object[] arguments)
+        internal static object? RaiseEvent(Mock mock, LambdaExpression expression, Stack<MethodExpectation> parts, object[] arguments)
         {
             const BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
@@ -819,11 +819,11 @@ namespace Moq
 
             if (parts.Count == 0)
             {
-                EventInfo @event;
+                EventInfo? @event;
                 if (method.IsEventAddAccessor())
                 {
                     var implementingMethod = method.GetImplementingMethod(mock.Object.GetType());
-                    @event = implementingMethod.DeclaringType.GetEvents(bindingFlags).SingleOrDefault(e => e.GetAddMethod(true) == implementingMethod);
+                    @event = implementingMethod.DeclaringType?.GetEvents(bindingFlags).SingleOrDefault(e => e.GetAddMethod(true) == implementingMethod);
                     if (@event == null)
                     {
                         throw new ArgumentException(
@@ -836,7 +836,7 @@ namespace Moq
                 else if (method.IsEventRemoveAccessor())
                 {
                     var implementingMethod = method.GetImplementingMethod(mock.Object.GetType());
-                    @event = implementingMethod.DeclaringType.GetEvents(bindingFlags).SingleOrDefault(e => e.GetRemoveMethod(true) == implementingMethod);
+                    @event = implementingMethod.DeclaringType?.GetEvents(bindingFlags).SingleOrDefault(e => e.GetRemoveMethod(true) == implementingMethod);
                     if (@event == null)
                     {
                         throw new ArgumentException(
@@ -924,7 +924,7 @@ namespace Moq
 
         #region Default Values
 
-        internal abstract Dictionary<Type, object> ConfiguredDefaultValues { get; }
+        internal abstract Dictionary<Type, object?> ConfiguredDefaultValues { get; }
 
         /// <summary>
         /// Defines the default return value for all mocked methods or properties with return type <typeparamref name= "TReturn" />.
@@ -939,13 +939,13 @@ namespace Moq
             this.ConfiguredDefaultValues[typeof(TReturn)] = value;
         }
 
-        internal object GetDefaultValue(MethodInfo method, out Mock candidateInnerMock, DefaultValueProvider useAlternateProvider = null)
+        internal object? GetDefaultValue(MethodInfo method, out Mock? candidateInnerMock, DefaultValueProvider? useAlternateProvider = null)
         {
-            Debug.Assert(method != null);
-            Debug.Assert(method.ReturnType != null);
+            Guard.NotNull(method);
+            Guard.NotNull(method.ReturnType);
             Debug.Assert(method.ReturnType != typeof(void));
 
-            if (this.ConfiguredDefaultValues.TryGetValue(method.ReturnType, out object configuredDefaultValue))
+            if (this.ConfiguredDefaultValues.TryGetValue(method.ReturnType, out object? configuredDefaultValue))
             {
                 candidateInnerMock = null;
                 return configuredDefaultValue;

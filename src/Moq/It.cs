@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -32,7 +33,7 @@ namespace Moq
             /// <summary>
             /// Matches any value that is assignment-compatible with type <typeparamref name="TValue"/>.
             /// </summary>
-            public static TValue IsAny;
+            public static TValue? IsAny;
         }
 
         /// <summary>
@@ -48,7 +49,7 @@ namespace Moq
         ///     mock.Setup(x => x.Remove(It.IsAny&lt;string&gt;())).Throws(new InvalidOperationException());
         ///   </code>
         /// </example>
-        public static TValue IsAny<TValue>()
+        public static TValue? IsAny<TValue>()
         {
             if (typeof(TValue).IsOrContainsTypeMatcher())
             {
@@ -85,7 +86,7 @@ namespace Moq
             }
         }
 
-        static readonly MethodInfo isAnyMethod = typeof(It).GetMethod(nameof(It.IsAny), BindingFlags.Public | BindingFlags.Static);
+        static readonly MethodInfo isAnyMethod = typeof(It).GetMethod(nameof(It.IsAny), BindingFlags.Public | BindingFlags.Static)!;
 
         internal static MethodCallExpression IsAny(Type genericArgument)
         {
@@ -117,7 +118,7 @@ namespace Moq
         ///   Matches any value of the given <typeparamref name="TValue"/> type, except null.
         /// </summary>
         /// <typeparam name="TValue">Type of the value.</typeparam>
-        public static TValue IsNotNull<TValue>()
+        public static TValue? IsNotNull<TValue>()
         {
             if (typeof(TValue).IsOrContainsTypeMatcher())
             {
@@ -157,18 +158,18 @@ namespace Moq
         ///         .Throws(new ArgumentException());
         ///   </code>
         /// </example>
-        public static TValue Is<TValue>(Expression<Func<TValue, bool>> match)
+        public static TValue? Is<TValue>(Expression<Func<TValue?, bool>> match)
         {
             if (typeof(TValue).IsOrContainsTypeMatcher())
             {
                 throw new ArgumentException(Resources.UseItIsOtherOverload, nameof(match));
             }
 
-            var thisMethod = (MethodInfo)MethodBase.GetCurrentMethod();
+            var thisMethod = Guard.NotNull((MethodInfo?)MethodBase.GetCurrentMethod());
 
-            return Match.Create<TValue>(
+            return Match.Create<TValue?>(
                 argument => match.CompileUsingExpressionCompiler().Invoke(argument),
-                Expression.Lambda<Func<TValue>>(Expression.Call(thisMethod.MakeGenericMethod(typeof(TValue)), match)));
+                Expression.Lambda<Func<TValue?>>(Expression.Call(thisMethod.MakeGenericMethod(typeof(TValue)), match)));
         }
 
         /// <summary>
@@ -185,13 +186,13 @@ namespace Moq
         ///   Allows the specification of a predicate to perform matching of method call arguments.
         /// </remarks>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static TValue Is<TValue>(Expression<Func<object, Type, bool>> match)
+        public static TValue? Is<TValue>(Expression<Func<object?, Type, bool>> match)
         {
-            var thisMethod = (MethodInfo)MethodBase.GetCurrentMethod();
+            var thisMethod = Guard.NotNull((MethodInfo?)MethodBase.GetCurrentMethod());
 
             return Match.Create<TValue>(
                 (argument, parameterType) => match.CompileUsingExpressionCompiler().Invoke(argument, parameterType),
-                Expression.Lambda<Func<TValue>>(Expression.Call(thisMethod.MakeGenericMethod(typeof(TValue)), match)));
+                Expression.Lambda<Func<TValue?>>(Expression.Call(thisMethod.MakeGenericMethod(typeof(TValue)), match)));
         }
 
         /// <summary>
@@ -206,7 +207,7 @@ namespace Moq
         /// <param name="comparer">An <see cref="IEqualityComparer{T}"/> with which the values should be compared.</param>
         /// <typeparam name="TValue">Type of the argument to check.</typeparam>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static TValue Is<TValue>(TValue value, IEqualityComparer<TValue> comparer)
+        public static TValue? Is<TValue>(TValue value, IEqualityComparer<TValue?> comparer)
         {
             return Match.Create<TValue>(actual => comparer.Equals(actual, value), () => It.Is<TValue>(value, comparer));
         }
@@ -228,10 +229,10 @@ namespace Moq
         ///         .Returns(false);
         ///   </code>
         /// </example>
-        public static TValue IsInRange<TValue>(TValue from, TValue to, Range rangeKind)
+        public static TValue? IsInRange<TValue>(TValue from, TValue to, Range rangeKind)
             where TValue : IComparable
         {
-            return Match<TValue>.Create(value =>
+            return Match<TValue?>.Create(value =>
             {
                 if (value == null)
                 {
@@ -265,7 +266,7 @@ namespace Moq
         ///         .Returns(false);
         ///   </code>
         /// </example>
-        public static TValue IsIn<TValue>(IEnumerable<TValue> items)
+        public static TValue? IsIn<TValue>(IEnumerable<TValue> items)
         {
             return Match<TValue>.Create(value => items.Contains(value), () => It.IsIn(items));
         }
@@ -276,7 +277,7 @@ namespace Moq
         /// <param name="items">The sequence of possible values.</param>
         /// <param name="comparer">An <see cref="IEqualityComparer{T}"/> with which the values should be compared.</param>
         /// <typeparam name="TValue">Type of the argument to check.</typeparam>
-        public static TValue IsIn<TValue>(IEnumerable<TValue> items, IEqualityComparer<TValue> comparer)
+        public static TValue? IsIn<TValue>(IEnumerable<TValue> items, IEqualityComparer<TValue?> comparer)
         {
             return Match<TValue>.Create(value => items.Contains(value, comparer), () => It.IsIn(items, comparer));
         }
@@ -296,7 +297,7 @@ namespace Moq
         ///         .Returns(false);
         ///   </code>
         /// </example>
-        public static TValue IsIn<TValue>(params TValue[] items)
+        public static TValue? IsIn<TValue>(params TValue[] items)
         {
             return Match<TValue>.Create(value => items.Contains(value), () => It.IsIn(items));
         }
@@ -318,7 +319,7 @@ namespace Moq
         ///         .Returns(false);
         ///   </code>
         /// </example>
-        public static TValue IsNotIn<TValue>(IEnumerable<TValue> items)
+        public static TValue? IsNotIn<TValue>(IEnumerable<TValue> items)
         {
             return Match<TValue>.Create(value => !items.Contains(value), () => It.IsNotIn(items));
         }
@@ -329,7 +330,7 @@ namespace Moq
         /// <param name="items">The sequence of disallowed values.</param>
         /// <param name="comparer">An <see cref="IEqualityComparer{T}"/> with which the values should be compared.</param>
         /// <typeparam name="TValue">Type of the argument to check.</typeparam>
-        public static TValue IsNotIn<TValue>(IEnumerable<TValue> items, IEqualityComparer<TValue> comparer)
+        public static TValue? IsNotIn<TValue>(IEnumerable<TValue> items, IEqualityComparer<TValue?> comparer)
         {
             return Match<TValue>.Create(value => !items.Contains(value, comparer), () => It.IsNotIn(items, comparer));
         }
@@ -349,7 +350,7 @@ namespace Moq
         ///         .Returns(false);
         ///   </code>
         /// </example>
-        public static TValue IsNotIn<TValue>(params TValue[] items)
+        public static TValue? IsNotIn<TValue>(params TValue[] items)
         {
             return Match<TValue>.Create(value => !items.Contains(value), () => It.IsNotIn(items));
         }
@@ -366,7 +367,7 @@ namespace Moq
         ///         .Returns(1);
         ///   </code>
         /// </example>
-        public static string IsRegex(string regex)
+        public static string? IsRegex(string regex)
         {
             Guard.NotNull(regex, nameof(regex));
 
@@ -390,7 +391,7 @@ namespace Moq
         ///         .Returns(1);
         ///   </code>
         /// </example>
-        public static string IsRegex(string regex, RegexOptions options)
+        public static string? IsRegex(string regex, RegexOptions options)
         {
             Guard.NotNull(regex, nameof(regex));
 

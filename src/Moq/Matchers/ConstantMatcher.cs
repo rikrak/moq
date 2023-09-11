@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -52,9 +53,9 @@ namespace Moq.Matchers
             object constantValue;
     */
     {
-        object constantValue;
+        object? constantValue;
 
-        public ConstantMatcher(object constantValue)
+        public ConstantMatcher(object? constantValue)
         {
             this.constantValue = constantValue;
         }
@@ -104,10 +105,11 @@ namespace Moq.Matchers
             */
         }
 
-        bool MatchesEnumerable(IEnumerable enumerable)
+        bool MatchesEnumerable(IEnumerable? enumerable)
         {
-            var constValues = (IEnumerable)constantValue;
-            return constValues.Cast<object>().SequenceEqual(enumerable.Cast<object>());
+            var constValues = (IEnumerable?)constantValue;
+
+            return object.ReferenceEquals(constValues, enumerable) || (constValues != null && enumerable != null && constValues.Cast<object>().SequenceEqual(enumerable.Cast<object>()));
         }
     }
 }

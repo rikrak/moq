@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) 2007, Clarius Consulting, Manas Technology Solutions, InSTEDD, and Contributors.
 // All rights reserved. Licensed under the BSD 3-Clause License; see License.txt.
 
@@ -52,11 +53,11 @@ namespace Moq.Async
             static readonly Dictionary<Type, Func<Type, IAwaitableFactory>> Providers;
     */
     {
-        static readonly Dictionary<Type, Func<Type, IAwaitableFactory>> Providers;
+        static readonly Dictionary<Type, Func<Type, IAwaitableFactory?>> Providers;
 
         static AwaitableFactory()
         {
-            AwaitableFactory.Providers = new Dictionary<Type, Func<Type, IAwaitableFactory>>
+            AwaitableFactory.Providers = new Dictionary<Type, Func<Type, IAwaitableFactory?>>
             {
                 [typeof(Task)] = awaitableType => TaskFactory.Instance,
                 [typeof(ValueTask)] = awaitableType => ValueTaskFactory.Instance,
@@ -86,16 +87,16 @@ namespace Moq.Async
             */
         }
 
-        static IAwaitableFactory Create(Type awaitableFactoryType, Type awaitableType)
+        static IAwaitableFactory? Create(Type awaitableFactoryType, Type awaitableType)
         {
-            return (IAwaitableFactory)Activator.CreateInstance(
+            return (IAwaitableFactory?)Activator.CreateInstance(
                 awaitableFactoryType.MakeGenericType(
                     awaitableType.GetGenericArguments()));
         }
 
-        public static IAwaitableFactory TryGet(Type type)
+        public static IAwaitableFactory? TryGet(Type type)
         {
-            Debug.Assert(type != null);
+            Guard.NotNull(type);
 
             var key = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
 
